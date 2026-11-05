@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5e100c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="度晬鑼">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>度晬鑼</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;700&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  
+  body { margin: 0; }
+  /* Layout: one screen, gong hanging in the centre of a lacquer-red field, controls below. Single committed festive look. */
+  :root {
+    --lacquer: #8c1d16;
+    --lacquer-deep: #5e100c;
+    --brass: #e2b043;
+    --brass-light: #f7dc8a;
+    --brass-dark: #8f6417;
+    --paper: #fff6e3;
+    --paper-dim: #f3d9b6;
+    --display: "Noto Serif TC", "Songti TC", serif;
+    --body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(120% 80% at 50% 35%, var(--lacquer) 0%, var(--lacquer-deep) 100%);
+    background-color: var(--lacquer-deep);
+    color: var(--paper);
+    font-family: var(--body);
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .app {
+    height: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: calc(14px + env(safe-area-inset-top, 0px)); padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    gap: 10px;
+  }
+  header { text-align: center; }
+  .eyebrow { font-size: 12px; letter-spacing: .5em; color: var(--brass); font-weight: 700; padding-left: .5em; }
+  h1 { font-family: var(--display); font-weight: 900; font-size: clamp(26px, 7vw, 36px);
+    letter-spacing: .08em; margin: 2px 0 0; color: var(--paper); text-wrap: balance; }
+  h1 .name { color: var(--brass-light); }
+
+  /* gong stage */
+  .stage { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+  .rack { position: relative; width: min(78vw, 46vh, 360px); aspect-ratio: 1 / 1.12; max-width: 100%; }
+  .cord { position: absolute; top: 0; width: 2px; height: 14%; background: var(--paper-dim); opacity: .8; }
+  .cord.l { left: 38%; transform: rotate(18deg); transform-origin: top; }
+  .cord.r { right: 38%; transform: rotate(-18deg); transform-origin: top; }
+  .peg { position: absolute; top: -5px; left: 50%; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--brass-dark); }
+  .swing { position: absolute; left: 0; right: 0; bottom: 0; top: 0; transform-origin: 50% 0; }
+  .gong {
+    position: absolute; left: 0; right: 0; bottom: 0; aspect-ratio: 1; border-radius: 50%;
+    border: none; padding: 0; cursor: pointer;
+    background:
+      radial-gradient(circle at 50% 50%, var(--brass-light) 0 9%, var(--brass) 10% 15%, transparent 15.5%),
+      repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.0) 0 7px, rgba(120,80,10,.18) 7px 8px),
+      radial-gradient(circle at 36% 30%, var(--brass-light) 0%, var(--brass) 38%, var(--brass-dark) 100%);
+    box-shadow:
+      inset 0 0 0 7px var(--brass-dark),
+      inset 0 0 0 9px var(--brass-light),
+      inset 0 -10px 30px rgba(60,30,0,.45),
+      0 18px 40px rgba(30,0,0,.55);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .gong:focus-visible { outline: 3px solid var(--paper); outline-offset: 6px; }
+  .gong .hint { font-family: var(--display); font-weight: 900; font-size: clamp(20px, 6vw, 28px);
+    color: var(--lacquer-deep); opacity: .78; letter-spacing: .2em; padding-left: .2em; pointer-events: none;
+    margin-top: 34%; }
+  .ripple { position: absolute; left: 0; right: 0; bottom: 0; aspect-ratio: 1; border-radius: 50%;
+    border: 3px solid var(--brass-light); opacity: 0; pointer-events: none; }
+
+  .swing.hit { animation: swing .9s cubic-bezier(.3,.6,.4,1); }
+  @keyframes swing {
+    0% { transform: rotate(0) } 18% { transform: rotate(-4.5deg) } 40% { transform: rotate(3deg) }
+    62% { transform: rotate(-1.6deg) } 82% { transform: rotate(.7deg) } 100% { transform: rotate(0) }
+  }
+  .ripple.go { animation: ripple 1.1s ease-out; }
+  @keyframes ripple { 0% { opacity: .9; transform: scale(1) } 100% { opacity: 0; transform: scale(1.45) } }
+  @media (prefers-reduced-motion: reduce) {
+    .swing.hit { animation: none; }
+    .ripple.go { animation: glow .6s ease-out; }
+    @keyframes glow { 0% { opacity: .9 } 100% { opacity: 0 } }
+  }
+
+  /* controls */
+  .controls { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 10px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn {
+    font-family: var(--body); font-weight: 700; font-size: 18px; color: var(--lacquer-deep);
+    background: var(--paper); border: none; border-radius: 14px; padding: 14px 8px; cursor: pointer;
+    box-shadow: 0 3px 0 var(--paper-dim);
+  }
+  .btn.primary { background: var(--brass); box-shadow: 0 3px 0 var(--brass-dark); }
+  .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--paper-dim); }
+  .btn:focus-visible, .seg button:focus-visible { outline: 3px solid var(--brass-light); outline-offset: 2px; }
+  .btn small { display: block; font-weight: 400; font-size: 12px; opacity: .75; margin-top: 2px; }
+
+  .vol { display: flex; align-items: center; gap: 10px; }
+  .vol label { font-size: 13px; color: var(--paper-dim); flex: none; }
+  .seg { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(0,0,0,.22); border-radius: 12px; padding: 3px; }
+  .seg button { font-family: var(--body); font-size: 15px; font-weight: 700; color: var(--paper-dim);
+    background: transparent; border: none; border-radius: 9px; padding: 8px 0; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--paper); color: var(--lacquer-deep); }
+
+  .cues { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 12px; text-align: center; }
+  .cue { background: rgba(0,0,0,.2); border-radius: 10px; padding: 6px 2px; line-height: 1.35; min-width: 0; }
+  .cue b { display: block; color: var(--brass-light); font-size: 13px; }
+  .note { font-size: 11.5px; color: var(--paper-dim); text-align: center; opacity: .85; margin: 0; }
+
+  .rename { margin-top: 4px; font-family: var(--body); font-size: 12px; color: var(--paper-dim);
+    background: transparent; border: 1px solid rgba(255,246,227,.35); border-radius: 999px; padding: 3px 12px; cursor: pointer; }
+  .rename:focus-visible { outline: 2px solid var(--brass-light); outline-offset: 2px; }
+
+  /* setup sheet */
+  .setup { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
+    background: rgba(40,4,2,.72);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .card { width: 100%; max-width: 380px; background: var(--paper); color: var(--lacquer-deep); border-radius: 18px;
+    padding: 22px 20px 18px; display: flex; flex-direction: column; gap: 12px;
+    box-shadow: 0 0 0 4px var(--brass), 0 20px 50px rgba(0,0,0,.5); }
+  .card h2 { font-family: var(--display); font-weight: 900; font-size: 22px; margin: 0; text-align: center; letter-spacing: .06em; }
+  .card p { margin: 0; font-size: 13.5px; line-height: 1.6; color: #6b3a2c; text-align: center; }
+  .card label { font-size: 13px; font-weight: 700; }
+  .card input { font-family: var(--body); font-size: 22px; font-weight: 700; text-align: center; color: #2b1510;
+    border: 2px solid var(--brass); border-radius: 12px; padding: 10px; width: 100%; background: #fff; }
+  .card input:focus { outline: 3px solid var(--brass-light); outline-offset: 1px; }
+  .card .btn { font-size: 17px; }
+  .card .share { display: flex; flex-direction: column; gap: 6px; }
+  .card .link { font-size: 12.5px; word-break: break-all; background: #f6e7cc; border-radius: 10px; padding: 8px 10px;
+    color: #4a2418; -webkit-user-select: all; user-select: all; }
+  .card .msg { font-size: 12.5px; text-align: center; min-height: 1.2em; color: #4a2418; }
+  .card .ghost { background: transparent; box-shadow: none; border: 2px solid var(--paper-dim); }
+
+  @media (max-height: 640px) {
+    .cues { display: none; }
+    .btn { padding: 11px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="eyebrow">度晬抓週</div>
+    <h1><span class="name" id="name-out"></span> 度晬鑼</h1>
+    <button class="rename" id="rename" type="button">改名字／分享</button>
+  </header>
+
+  <div class="stage">
+    <div class="rack">
+      <div class="swing" id="swing">
+        <span class="peg"></span>
+        <span class="cord l"></span><span class="cord r"></span>
+        <div class="ripple" id="ripple"></div>
+        <button class="gong" id="gong" aria-label="敲一聲鑼"><span class="hint">點我敲</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="row">
+      <button class="btn" id="one">敲一聲<small>道具唸完、抓到東西</small></button>
+      <button class="btn primary" id="three">敲三聲<small>開場、結尾</small></button>
+    </div>
+    <div class="vol">
+      <label id="vol-label">音量</label>
+      <div class="seg" role="group" aria-labelledby="vol-label">
+        <button id="v-soft" data-v="0.35" aria-pressed="false">輕</button>
+        <button id="v-mid" data-v="0.65" aria-pressed="true">中</button>
+        <button id="v-loud" data-v="1" aria-pressed="false">響</button>
+      </div>
+    </div>
+    <div class="cues" aria-label="什麼時候敲">
+      <div class="cue"><b>開場</b>三聲</div>
+      <div class="cue"><b>道具唸完</b>一聲</div>
+      <div class="cue"><b>抓到東西</b>一聲</div>
+      <div class="cue"><b>結尾</b>三聲</div>
+    </div>
+    <p class="note">iPhone 沒聲音的話，請先關掉靜音鍵。寶寶在旁邊建議用「輕」。</p>
+  </div>
+</div>
+
+<div class="setup" id="setup" hidden>
+  <form class="card" id="setup-form" autocomplete="off">
+    <h2>寶寶的名字</h2>
+    <p>名字會顯示在鑼的上方。分享出去的網址會帶著名字，對方一打開就直接進到敲鑼畫面。</p>
+    <label for="name-in">名字</label>
+    <input id="name-in" name="name" maxlength="12" placeholder="例如：曜宇" required>
+    <button class="btn primary" type="submit">開始敲鑼</button>
+    <div class="share" id="share-box" hidden>
+      <label>分享網址</label>
+      <div class="link" id="share-link"></div>
+      <button class="btn ghost" type="button" id="copy">複製網址</button>
+      <div class="msg" id="copy-msg" role="status"></div>
+    </div>
+  </form>
+</div>
+
+<script>
+(() => {
+  let ctx = null, master = null, comp = null;
+  let volume = 0.65;
+  let wakeLock = null;
+
+  try { const v = localStorage.getItem('gong-vol'); if (v) volume = parseFloat(v) || volume; } catch (e) {}
+
+  function ensureAudio() {
+    if (!ctx) {
+      try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+      const AC = window.AudioContext || window.webkitAudioContext;
+      ctx = new AC();
+      comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -10; comp.ratio.value = 4;
+      master = ctx.createGain();
+      master.gain.value = volume;
+      master.connect(comp); comp.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+  }
+
+  // Small hand gong: inharmonic partials, slight upward pitch bend, mallet thump.
+  const partials = [
+    { r: 1.00, g: 0.55, d: 3.2 },
+    { r: 1.006, g: 0.30, d: 3.0 },
+    { r: 1.53, g: 0.32, d: 2.4 },
+    { r: 2.07, g: 0.26, d: 1.9 },
+    { r: 2.76, g: 0.18, d: 1.4 },
+    { r: 3.42, g: 0.12, d: 1.0 },
+    { r: 4.18, g: 0.08, d: 0.7 },
+    { r: 5.55, g: 0.05, d: 0.45 },
+  ];
+  let noiseBuf = null;
+  function getNoise() {
+    if (noiseBuf) return noiseBuf;
+    const len = Math.floor(ctx.sampleRate * 0.12);
+    noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    return noiseBuf;
+  }
+
+  function strike(when) {
+    const t = when;
+    const f0 = 392 * (1 + (Math.random() - 0.5) * 0.02);
+    const bus = ctx.createGain(); bus.gain.value = 0.9; bus.connect(master);
+    partials.forEach(p => {
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      const f = f0 * p.r;
+      o.frequency.setValueAtTime(f * 0.985, t);
+      o.frequency.exponentialRampToValueAtTime(f * 1.02, t + 0.35);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(p.g, t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + p.d);
+      o.connect(g); g.connect(bus);
+      o.start(t); o.stop(t + p.d + 0.05);
+    });
+    const n = ctx.createBufferSource(); n.buffer = getNoise();
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.8;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.5, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+    n.connect(bp); bp.connect(ng); ng.connect(bus);
+    n.start(t);
+  }
+
+  const swing = document.getElementById('swing');
+  const ripple = document.getElementById('ripple');
+  function animateHit() {
+    swing.classList.remove('hit'); ripple.classList.remove('go');
+    void swing.offsetWidth;
+    swing.classList.add('hit'); ripple.classList.add('go');
+    try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) {}
+  }
+
+  async function keepAwake() {
+    try {
+      if (!wakeLock && 'wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      }
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && ctx) keepAwake(); });
+
+  function hit(count) {
+    ensureAudio();
+    keepAwake();
+    const now = ctx.currentTime + 0.02;
+    for (let i = 0; i < count; i++) {
+      strike(now + i * 0.7);
+      setTimeout(animateHit, i * 700);
+    }
+  }
+
+  document.getElementById('gong').addEventListener('pointerdown', e => { e.preventDefault(); hit(1); });
+  document.getElementById('gong').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hit(1); } });
+  document.getElementById('one').addEventListener('click', () => hit(1));
+  document.getElementById('three').addEventListener('click', () => hit(3));
+
+  const segBtns = document.querySelectorAll('.seg button');
+  function setVol(v) {
+    volume = v;
+    segBtns.forEach(b => b.setAttribute('aria-pressed', String(Math.abs(parseFloat(b.dataset.v) - v) < 0.01)));
+    if (master) master.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+    try { localStorage.setItem('gong-vol', String(v)); } catch (e) {}
+  }
+  segBtns.forEach(b => b.addEventListener('click', () => setVol(parseFloat(b.dataset.v))));
+  setVol(volume);
+
+  // ---- name from ?name= ----
+  const nameOut = document.getElementById('name-out');
+  const setup = document.getElementById('setup');
+  const form = document.getElementById('setup-form');
+  const nameIn = document.getElementById('name-in');
+  const shareBox = document.getElementById('share-box');
+  const shareLink = document.getElementById('share-link');
+  const copyMsg = document.getElementById('copy-msg');
+
+  function clean(v) { return (v || '').replace(/\s+/g, ' ').trim().slice(0, 12); }
+  function linkFor(n) {
+    const u = new URL(location.href);
+    u.search = ''; u.hash = '';
+    u.searchParams.set('name', n);
+    return u.toString();
+  }
+  function pretty(u) { try { return decodeURI(u); } catch (e) { return u; } }
+  function applyName(n) {
+    nameOut.textContent = n;
+    document.title = n + ' 度晬鑼';
+    try { localStorage.setItem('gong-name', n); } catch (e) {}
+    const u = new URL(location.href);
+    if (u.searchParams.get('name') !== n) { u.searchParams.set('name', n); history.replaceState(null, '', u); }
+  }
+  function openSetup(prefill) {
+    nameIn.value = prefill || '';
+    if (prefill) { shareLink.textContent = pretty(linkFor(prefill)); shareLink.dataset.url = linkFor(prefill); shareBox.hidden = false; } else { shareBox.hidden = true; }
+    copyMsg.textContent = '';
+    setup.hidden = false;
+    setTimeout(() => nameIn.focus(), 50);
+  }
+  nameIn.addEventListener('input', () => {
+    const n = clean(nameIn.value);
+    if (n) { shareLink.textContent = pretty(linkFor(n)); shareLink.dataset.url = linkFor(n); shareBox.hidden = false; } else { shareBox.hidden = true; }
+    copyMsg.textContent = '';
+  });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const n = clean(nameIn.value);
+    if (!n) { nameIn.focus(); return; }
+    applyName(n);
+    setup.hidden = true;
+  });
+  document.getElementById('copy').addEventListener('click', () => {
+    const text = shareLink.dataset.url || shareLink.textContent;
+    const done = () => { copyMsg.textContent = '已複製，可以貼到 LINE 傳給家人。'; };
+    const fallback = () => {
+      const r = document.createRange(); r.selectNodeContents(shareLink);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      copyMsg.textContent = '已選取網址，請長按複製。';
+    };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+  document.getElementById('rename').addEventListener('click', () => openSetup(nameOut.textContent));
+
+  let initial = '';
+  try { initial = clean(new URLSearchParams(location.search).get('name')); } catch (e) {}
+  if (!initial) { try { initial = clean(localStorage.getItem('gong-name')); } catch (e) {} }
+  if (initial) applyName(initial); else openSetup('');
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
